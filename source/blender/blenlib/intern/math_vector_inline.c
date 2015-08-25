@@ -611,12 +611,6 @@ MINLINE void negate_v3_short(short r[3])
 	r[2] = (short)-r[2];
 }
 
-MINLINE void negate_v2_int(int r[2])
-{
-	r[0] = -r[0];
-	r[1] = -r[1];
-}
-
 MINLINE void abs_v2(float r[2])
 {
 	r[0] = fabsf(r[0]);
