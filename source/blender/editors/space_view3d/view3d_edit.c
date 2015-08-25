@@ -631,7 +631,10 @@ static bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = OBACT;
 
-	if (ob && (ob->mode & OB_MODE_ALL_PAINT) && (BKE_object_pose_armature_get(ob) == NULL)) {
+	if (ob && (ob->mode & OB_MODE_ALL_PAINT) &&
+	    /* with weight-paint + pose-mode, fall through to using calculateTransformCenter */
+	    ((ob->mode & OB_MODE_WEIGHT_PAINT) && BKE_object_pose_armature_get(ob)) == 0)
+	{
 		/* in case of sculpting use last average stroke position as a rotation
 		 * center, in other cases it's not clear what rotation center shall be
 		 * so just rotate around object origin
@@ -4475,7 +4478,7 @@ void VIEW3D_OT_background_image_add(wmOperatorType *ot)
 	/* properties */
 	RNA_def_string(ot->srna, "name", "Image", MAX_ID_NAME - 2, "Name", "Image name to assign");
 	WM_operator_properties_filesel(ot, FILE_TYPE_FOLDER | FILE_TYPE_IMAGE | FILE_TYPE_MOVIE, FILE_SPECIAL, FILE_OPENFILE,
-	                               WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
+	                               WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
 }
 
 
@@ -4818,10 +4821,17 @@ static float view_autodist_depth_margin(ARegion *ar, const int mval[2], int marg
 	return depth_close;
 }
 
-/* XXX todo Zooms in on a border drawn by the user */
-bool ED_view3d_autodist(Scene *scene, ARegion *ar, View3D *v3d,
-                        const int mval[2], float mouse_worldloc[3],
-                        const bool alphaoverride, const float fallback_depth_pt[3])
+/**
+ * Get the world-space 3d location from a screen-space 2d point.
+ *
+ * \param mval: Input screen-space pixel location.
+ * \param mouse_worldloc: Output world-space loction.
+ * \param fallback_depth_pt: Use this points depth when no depth can be found.
+ */
+bool ED_view3d_autodist(
+        Scene *scene, ARegion *ar, View3D *v3d,
+        const int mval[2], float mouse_worldloc[3],
+        const bool alphaoverride, const float fallback_depth_pt[3])
 {
 	bglMats mats; /* ZBuffer depth vars */
 	float depth_close;
