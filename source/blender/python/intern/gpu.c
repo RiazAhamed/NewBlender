@@ -313,30 +313,10 @@ static PyMethodDef meth_export_shader[] = {
 	{"export_shader", (PyCFunction)GPU_export_shader, METH_VARARGS | METH_KEYWORDS, GPU_export_shader_doc}
 };
 
-/* -------------------------------------------------------------------- */
-/* Initialize Module */
-
 PyObject *GPU_initPython(void)
 {
-	PyObject *module;
-
-	/* Register the 'GPUOffscreen' class */
-	if (PyType_Ready(&PyGPUOffScreen_Type)) {
-		return NULL;
-	}
-
-	module = PyInit_gpu();
-
+	PyObject *module = PyInit_gpu();
 	PyModule_AddObject(module, "export_shader", (PyObject *)PyCFunction_New(meth_export_shader, NULL));
-
-	PyModule_AddObject(module, "OffScreenObject", (PyObject *) &PyGPUOffScreen_Type);
-
-	PyModule_AddObject(module, "offscreen_object_bind", (PyObject *)PyCFunction_New(meth_offscreen_object_bind, NULL));
-	PyModule_AddObject(module, "offscreen_object_create", (PyObject *)PyCFunction_New(meth_offscreen_object_create, NULL));
-	PyModule_AddObject(module, "offscreen_object_draw", (PyObject *)PyCFunction_New(meth_offscreen_object_draw, NULL));
-	PyModule_AddObject(module, "offscreen_object_free", (PyObject *)PyCFunction_New(meth_offscreen_object_free, NULL));
-	PyModule_AddObject(module, "offscreen_object_unbind", (PyObject *)PyCFunction_New(meth_offscreen_object_unbind, NULL));
-
 	PyDict_SetItemString(PyImport_GetModuleDict(), "gpu", module);
 
 	return module;
